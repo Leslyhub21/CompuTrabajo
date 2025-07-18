@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Buscador de Trabajos</title>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="bg-white shadow-lg rounded-xl p-8 w-full max-w-md">
+        <h1 class="text-2xl font-bold mb-6 text-gray-800 text-center">Buscador de Trabajos</h1>
+        <form id="buscadorForm" class="flex flex-col gap-4">
+            <input type="text" id="busqueda" name="busqueda" placeholder="¿Qué trabajo buscas?"
+                class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                autocomplete="off" required />
+            <button type="submit"
+                class="bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition disabled:bg-blue-300"
+                id="botonBuscar">
+                Buscar
+            </button>
+        </form>
+        <div id="resultados" class="mt-6"></div>
+    </div>
+
+    <script>
+        document.getElementById('buscadorForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const query = document.getElementById('busqueda').value.trim();
+            const resultados = document.getElementById('resultados');
+            const botonBuscar = document.getElementById('botonBuscar');
+
+            if (!query) {
+                resultados.innerHTML = '<p class="text-red-500">Escribe algo para buscar.</p>';
+                return;
+            }
+
+            // Deshabilitar el botón y mostrar mensaje de carga
+            botonBuscar.disabled = true;
+            resultados.innerHTML = `
+                <div class="flex items-center justify-center text-gray-500">
+                    <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Buscando "${query}"...
+                </div>
+            `;
+
+            try {
+                const response = await fetch('http://localhost:3000/buscar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ busqueda: query })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+
+                const data = await response.json();
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    resultados.innerHTML = '<p class="text-red-500">No se encontraron resultados.</p>';
+                    botonBuscar.disabled = false;
+                    return;
+                }
+
+                // Mostrar todos los campos relevantes del scraping
+                const lista = data.map(trabajo => `
+                    <li class="mb-4">
+                        <strong class="text-lg text-blue-800">${trabajo.titulo}</strong><br>
+                        <span class="text-gray-600">${trabajo.empresa} - ${trabajo.ubicacion}</span><br>
+                        <span class="text-gray-500 text-sm">${trabajo.descripcion.slice(0, 100)}...</span><br>
+                        <span class="text-gray-500 text-sm"><strong>Modalidad:</strong> ${trabajo.modalidad}</span><br>
+                        <span class="text-gray-500 text-sm"><strong>Salario:</strong> ${trabajo.salario}</span><br>
+                        <span class="text-gray-500 text-sm"><strong>Publicado:</strong> ${trabajo.fechaPublicacion}</span>
+                    </li>
+                `).join('');
+
+                resultados.innerHTML = `
+                    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+                        <p class="text-blue-800 font-medium mb-2">Resultados para <span class="font-bold">${query}</span>:</p>
+                        <ul class="mt-2 list-disc list-inside text-gray-700">${lista}</ul>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+                resultados.innerHTML = '<p class="text-red-500">Error al buscar trabajos. Intenta de nuevo.</p>';
+            } finally {
+                // Rehabilitar el botón
+                botonBuscar.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

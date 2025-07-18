@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <ul class="flex">
+                <li class="select-tab mr-4 cursor-pointer bg-blue-200 p-2 hover:bg-blue-100">Tab 1</li>
+                <li class="select-tab mr-4 cursor-pointer p-2 hover:bg-blue-100">Tab 2</li>
+                <li class="select-tab mr-4 cursor-pointer p-2 hover:bg-blue-100">Tab 3</li>
+                <li class="select-tab mr-4 cursor-pointer p-2 hover:bg-blue-100">Tab 4</li>
+                <li class="select-tab mr-4 cursor-pointer p-2 hover:bg-blue-100">Tab 5</li>
+            </ul>
+        </nav>
+    </header>
+    <section class="select-content h-40 bg-blue-200 text-4xl flex items-center justify-center">
+        Tab 1 Content
+    </section>
+    <section class="select-content h-40 bg-blue-200 text-4xl flex items-center justify-center hidden">
+        Tab 2 Content
+    </section>
+    <section class="select-content h-40 bg-blue-200 text-4xl flex items-center justify-center hidden">
+        Tab 3 Content
+    </section>
+    <section class="select-content h-40 bg-blue-200 text-4xl flex items-center justify-center hidden">
+        Tab 4 Content
+    </section>
+    <section class="select-content h-40 bg-blue-200 text-4xl flex items-center justify-center hidden">
+        Tab 5 Content
+    </section>
+    <script src="./src/js/tabs.js"></script>
+</body>
+
+</html>
