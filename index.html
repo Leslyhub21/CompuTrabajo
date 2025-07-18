@@ -1,40 +1,55 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>Tabs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body>
-    <header>
-        <nav>
-            <ul class="flex">
-                <li class="select-tab mr-4 cursor-pointer bg-blue-200 p-2 hover:bg-blue-100">Tab 1</li>
-                <li class="select-tab mr-4 cursor-pointer p-2 hover:bg-blue-100">Tab 2</li>
-                <li class="select-tab mr-4 cursor-pointer p-2 hover:bg-blue-100">Tab 3</li>
-                <li class="select-tab mr-4 cursor-pointer p-2 hover:bg-blue-100">Tab 4</li>
-                <li class="select-tab mr-4 cursor-pointer p-2 hover:bg-blue-100">Tab 5</li>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="max-w-2xl w-full mx-auto">
+        <!-- Tabs Navbar -->
+        <nav class="flex bg-white shadow rounded-xl mb-4 overflow-hidden border border-gray-200">
+            <ul class="flex w-full">
+                <li
+                    class="select-tab flex-1 text-center cursor-pointer px-4 py-3 font-semibold transition bg-blue-100 text-blue-700 shadow-inner border-r border-gray-200 hover:bg-blue-200 first:rounded-l-xl last:border-none last:rounded-r-xl">
+                    Todos
+                </li>
+                <li
+                    class="select-tab flex-1 text-center cursor-pointer px-4 py-3 font-semibold transition hover:bg-blue-50">
+                    Top 10 mejores salarios
+                </li>
+                <li
+                    class="select-tab flex-1 text-center cursor-pointer px-4 py-3 font-semibold transition hover:bg-blue-50">
+                    Top 10 peores salarios
+                </li>
+                <li
+                    class="select-tab flex-1 text-center cursor-pointer px-4 py-3 font-semibold transition hover:bg-blue-50">
+                    Tab 4</li>
+                <li
+                    class="select-tab flex-1 text-center cursor-pointer px-4 py-3 font-semibold transition hover:bg-blue-50">
+                    Tab 5</li>
             </ul>
         </nav>
-    </header>
-    <section class="select-content h-40 bg-blue-200 text-4xl flex items-center justify-center">
-        Tab 1 Content
-    </section>
-    <section class="select-content h-40 bg-blue-200 text-4xl flex items-center justify-center hidden">
-        Tab 2 Content
-    </section>
-    <section class="select-content h-40 bg-blue-200 text-4xl flex items-center justify-center hidden">
-        Tab 3 Content
-    </section>
-    <section class="select-content h-40 bg-blue-200 text-4xl flex items-center justify-center hidden">
-        Tab 4 Content
-    </section>
-    <section class="select-content h-40 bg-blue-200 text-4xl flex items-center justify-center hidden">
-        Tab 5 Content
-    </section>
+        <!-- Tabs Content -->
+        <section class="select-content bg-white rounded-xl shadow p-6 border border-gray-200">
+            Loading...
+        </section>
+        <section class="select-content bg-white rounded-xl shadow p-6 border border-gray-200 hidden">
+            Loading...
+        </section>
+        <section class="select-content bg-white rounded-xl shadow p-6 border border-gray-200 hidden">
+            Loading...
+        </section>
+        <section class="select-content bg-white rounded-xl shadow p-6 border border-gray-200 hidden">
+            Tab 4 Content
+        </section>
+        <section class="select-content bg-white rounded-xl shadow p-6 border border-gray-200 hidden">
+            Tab 5 Content
+        </section>
+    </div>
     <script src="./src/js/tabs.js"></script>
 </body>
 
