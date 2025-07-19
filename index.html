@@ -2,14 +2,24 @@
 <html lang="es">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tabs</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
-    <div class="max-w-2xl w-full mx-auto">
+    <div class="max-w-2xl w-full mx-auto px-4">
+        <!-- Botón Volver al Buscador -->
+        <div class="mb-4">
+            <br>
+            <br>
+            <button id="volverBuscadorBtn"
+                class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded transition">
+                ← Volver al buscador
+            </button>
+        </div>
+
         <!-- Tabs Navbar -->
         <nav class="flex bg-white shadow rounded-xl mb-4 overflow-hidden border border-gray-200">
             <ul class="flex w-full">
@@ -27,12 +37,15 @@
                 </li>
                 <li
                     class="select-tab flex-1 text-center cursor-pointer px-4 py-3 font-semibold transition hover:bg-blue-50">
-                    Tab 4</li>
+                    Tab 4
+                </li>
                 <li
                     class="select-tab flex-1 text-center cursor-pointer px-4 py-3 font-semibold transition hover:bg-blue-50">
-                    Tab 5</li>
+                    Tab 5
+                </li>
             </ul>
         </nav>
+
         <!-- Tabs Content -->
         <section class="select-content bg-white rounded-xl shadow p-6 border border-gray-200">
             Loading...
@@ -50,7 +63,14 @@
             Tab 5 Content
         </section>
     </div>
+
     <script src="./src/js/tabs.js"></script>
+    <script>
+        // Botón para retornar al buscador (index.html)
+        document.getElementById('volverBuscadorBtn').addEventListener('click', () => {
+            window.location.href = 'buscador.html';
+        });
+    </script>
 </body>
 
 </html>

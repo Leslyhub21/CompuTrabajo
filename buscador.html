@@ -31,6 +31,11 @@
         </form>
 
         <div id="resultados" class="mt-6" style="display:none;"></div>
+
+        <!-- Barra de progreso para mostrar porcentaje de carga -->
+        <div class="w-full bg-gray-200 rounded h-2 mt-4" id="progressContainer" style="display:none;">
+            <div id="progressBar" class="bg-blue-600 h-2 rounded" style="width: 0%"></div>
+        </div>
     </div>
 
     <script>
@@ -38,35 +43,71 @@
         const botonBuscar = document.getElementById('botonBuscar');
         const botonVerResultados = document.getElementById('verResultadosBtn');
         const resultados = document.getElementById('resultados');
+        const progressBar = document.getElementById('progressBar');
+        const progressContainer = document.getElementById('progressContainer');
 
-        // Estado global que refleja si hay resultados
         let hayResultados = false;
 
-        // Actualizar estado del botón buscar al teclear
+        // Habilitar o deshabilitar botón Buscar dependiendo si hay texto
         inputBusqueda.addEventListener('input', () => {
             botonBuscar.disabled = inputBusqueda.value.trim() === '';
         });
 
-        // Al cargar la página, restaura estado del botón "Ver resultados"
-        window.addEventListener('DOMContentLoaded', () => {
-            const tieneResultados = localStorage.getItem('busquedaExitosa') === 'true';
-            botonVerResultados.disabled = !tieneResultados;
-            hayResultados = tieneResultados;
-        });
+        function actualizarBarra(progreso) {
+            const porcentaje = Math.round(progreso * 100);
+            progressBar.style.width = porcentaje + "%";
+        }
 
-        document.getElementById('buscadorForm').addEventListener('submit', async function (e) {
+        async function fetchConProgreso(url, options, progressCallback) {
+            const response = await fetch(url, options);
+            if (!response.ok) throw new Error("Error en la respuesta del servidor");
+
+            const contentLength = response.headers.get('Content-Length');
+            if (!contentLength) {
+                // No se puede medir progreso sin content-length
+                return await response.json();
+            }
+
+            const total = parseInt(contentLength, 10);
+            const reader = response.body.getReader();
+            let receivedLength = 0;
+            let chunks = [];
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                chunks.push(value);
+                receivedLength += value.length;
+                progressCallback(receivedLength / total);
+            }
+
+            let chunksAll = new Uint8Array(receivedLength);
+            let position = 0;
+            for (let chunk of chunks) {
+                chunksAll.set(chunk, position);
+                position += chunk.length;
+            }
+
+            const resultString = new TextDecoder("utf-8").decode(chunksAll);
+            return JSON.parse(resultString);
+        }
+
+        document.getElementById('buscadorForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+
             const query = inputBusqueda.value.trim();
 
             resultados.style.display = 'none';
             resultados.innerHTML = '';
             botonVerResultados.disabled = true;
             hayResultados = false;
-            localStorage.setItem('busquedaExitosa', 'false'); // Resetear estado previamente
+            progressBar.style.width = "0%";
+            progressContainer.style.display = "block";
 
             if (!query) {
                 resultados.style.display = 'block';
                 resultados.innerHTML = '<p class="text-red-500">Escribe algo para buscar.</p>';
+                progressContainer.style.display = "none";
                 return;
             }
 
@@ -74,25 +115,22 @@
 
             resultados.style.display = 'block';
             resultados.innerHTML = `
-          <div class="flex items-center justify-center text-gray-500">
-              <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Buscando "<span class="italic">${query}</span>"...
-          </div>
+        <div class="flex items-center gap-2 text-gray-500">
+          <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>Buscando "<em>${query}</em>"...</span>
+        </div>
       `;
 
             try {
-                const response = await fetch('http://localhost:3000/buscar', {
+                const data = await fetchConProgreso('http://localhost:3000/buscar', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ busqueda: query })
-                });
-
-                if (!response.ok) throw new Error('Respuesta no OK del servidor');
-
-                const data = await response.json();
+                }, actualizarBarra);
 
                 const trabajos = Array.isArray(data) ? data : data.trabajos;
 
@@ -101,14 +139,14 @@
                     botonVerResultados.disabled = true;
                     hayResultados = false;
                     resultados.style.display = 'block';
-                    localStorage.setItem('busquedaExitosa', 'false');
+                    progressContainer.style.display = "none";
                     return;
                 }
 
                 resultados.style.display = 'none';
+                progressContainer.style.display = "none";
                 botonVerResultados.disabled = false;
                 hayResultados = true;
-                localStorage.setItem('busquedaExitosa', 'true'); // Guardar estado para persistencia
 
             } catch (error) {
                 console.error('Error:', error);
@@ -116,7 +154,7 @@
                 botonVerResultados.disabled = true;
                 hayResultados = false;
                 resultados.style.display = 'block';
-                localStorage.setItem('busquedaExitosa', 'false');
+                progressContainer.style.display = "none";
             } finally {
                 botonBuscar.disabled = inputBusqueda.value.trim() === '';
             }
