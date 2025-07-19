@@ -16,38 +16,69 @@
             <input type="text" id="busqueda" name="busqueda" placeholder="¿Qué trabajo buscas?"
                 class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
                 autocomplete="off" required />
-            <button type="submit"
-                class="bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition disabled:bg-blue-300"
-                id="botonBuscar">
-                Buscar
-            </button>
+            <!-- CAMBIO AQUÍ: flex-col para que los elementos se apilen verticalmente -->
+            <div class="flex flex-col gap-4">
+                <button type="submit" id="botonBuscar"
+                    class="bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition disabled:bg-blue-300 w-full"
+                    disabled>
+                    Buscar
+                </button>
+                <button type="button" id="verResultadosBtn"
+                    class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-semibold transition disabled:bg-green-300 w-full"
+                    disabled>
+                    Ver resultados
+                </button>
+            </div>
         </form>
 
-        <div id="resultados" class="mt-6"></div>
+        <div id="resultados" class="mt-6" style="display:none;"></div>
     </div>
 
     <script>
+        const inputBusqueda = document.getElementById('busqueda');
+        const botonBuscar = document.getElementById('botonBuscar');
+        const botonVerResultados = document.getElementById('verResultadosBtn');
+        const resultados = document.getElementById('resultados');
+
+        // Al inicio, botones deshabilitados
+        botonBuscar.disabled = true;
+        botonVerResultados.disabled = true;
+
+        // Habilitar o deshabilitar botón Buscar dependiendo si hay texto
+        inputBusqueda.addEventListener('input', () => {
+            botonBuscar.disabled = inputBusqueda.value.trim() === '';
+        });
+
+        let hayResultados = false; // Para saber si hubo búsqueda exitosa
+
         document.getElementById('buscadorForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            const query = document.getElementById('busqueda').value.trim();
-            const resultados = document.getElementById('resultados');
-            const botonBuscar = document.getElementById('botonBuscar');
+            const query = inputBusqueda.value.trim();
+
+            // Ocultar resultados y deshabilitar botón Ver resultados al iniciar una nueva búsqueda
+            resultados.style.display = 'none';
+            resultados.innerHTML = '';
+            botonVerResultados.disabled = true;
+            hayResultados = false;
 
             if (!query) {
+                resultados.style.display = 'block';
                 resultados.innerHTML = '<p class="text-red-500">Escribe algo para buscar.</p>';
                 return;
             }
 
-            botonBuscar.disabled = true;
+            botonBuscar.disabled = true; // Deshabilitar el botón de buscar mientras se realiza la búsqueda
+
+            resultados.style.display = 'block'; // Mostrar el contenedor de resultados para el mensaje de carga
             resultados.innerHTML = `
-        <div class="flex items-center justify-center text-gray-500">
-          <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          Buscando "<span class="italic">${query}</span>"...
-        </div>
-      `;
+                <div class="flex items-center justify-center text-gray-500">
+                    <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Buscando "<span class="italic">${query}</span>"...
+                </div>
+            `;
 
             try {
                 const response = await fetch('http://localhost:3000/buscar', {
@@ -62,31 +93,34 @@
 
                 if (!data || !data.trabajos || data.trabajos.length === 0) {
                     resultados.innerHTML = '<p class="text-red-500">No se encontraron resultados.</p>';
+                    // Si no hay resultados, el botón "Ver resultados" debe permanecer deshabilitado
+                    botonVerResultados.disabled = true;
+                    hayResultados = false;
                     return;
                 }
 
-                const lista = data.trabajos.map(trabajo => `
-          <li class="mb-4">
-            <strong class="text-lg text-blue-800">${trabajo.titulo}</strong><br>
-            <span class="text-gray-600">${trabajo.empresa} - ${trabajo.ubicacion}</span><br>
-            <span class="text-gray-500 text-sm">${trabajo.descripcion?.slice(0, 100) || 'Sin descripción'}...</span><br>
-            <span class="text-gray-500 text-sm"><strong>Modalidad:</strong> ${trabajo.modalidad}</span><br>
-            <span class="text-gray-500 text-sm"><strong>Salario:</strong> ${trabajo.salario}</span><br>
-            <span class="text-gray-500 text-sm"><strong>Publicado:</strong> ${trabajo.fechaPublicacion}</span>
-          </li>
-        `).join('');
+                // Si hay resultados, ocultamos el mensaje de carga y habilitamos el botón "Ver resultados"
+                resultados.style.display = 'none'; // Ocultar el div de resultados si la búsqueda fue exitosa
+                botonVerResultados.disabled = false;
+                hayResultados = true;
 
-                resultados.innerHTML = `
-          <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
-            <p class="text-blue-800 font-medium mb-2">Resultados para <span class="font-bold">${query}</span>:</p>
-            <ul class="mt-2 list-disc list-inside text-gray-700">${lista}</ul>
-          </div>
-        `;
             } catch (error) {
                 console.error('Error:', error);
                 resultados.innerHTML = '<p class="text-red-500">Error al buscar trabajos. Intenta de nuevo.</p>';
+                // En caso de error, el botón "Ver resultados" debe permanecer deshabilitado
+                botonVerResultados.disabled = true;
+                hayResultados = false;
             } finally {
-                botonBuscar.disabled = false;
+                // Reevaluar el estado del botón "Buscar" al finalizar la operación
+                botonBuscar.disabled = inputBusqueda.value.trim() === '';
+            }
+        });
+
+        // Evento para el botón "Ver resultados"
+        botonVerResultados.addEventListener('click', () => {
+            if (hayResultados) { // Asegurarse de que solo se redirija si hay resultados disponibles
+                // Redirigir a index.html
+                window.location.href = 'index.html';
             }
         });
     </script>

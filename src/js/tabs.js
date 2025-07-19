@@ -49,7 +49,7 @@ function trabajoCard(trabajo, i) {
 async function cargarTabs() {
   let trabajos = [];
   try {
-    const resp = await fetch("/output/resultadosCompuTrabajo.json");
+    const resp = await fetch("../../output/resultadosCompuTrabajo.json");
     if (!resp.ok)
       throw new Error("No se pudo cargar el JSON de resultados de trabajos.");
     trabajos = await resp.json();
@@ -61,12 +61,10 @@ async function cargarTabs() {
     return;
   }
 
-  // Tab 1: Todos
   contentArray[0].innerHTML = trabajos.length
     ? trabajos.map(trabajoCard).join("")
     : `<div class="text-gray-500">No hay datos.</div>`;
 
-  // Tab 2: Top 10 mejores salarios
   const mejores = [...trabajos]
     .sort((a, b) => parseSalary(b.salario) - parseSalary(a.salario))
     .slice(0, 10);
@@ -74,7 +72,6 @@ async function cargarTabs() {
     ? mejores.map((t, i) => trabajoCard(t, i)).join("")
     : `<div class="text-gray-500">No hay datos.</div>`;
 
-  // Tab 3: Top 10 peores salarios
   const peores = [...trabajos]
     .sort((a, b) => parseSalary(a.salario) - parseSalary(b.salario))
     .slice(0, 10);
@@ -83,10 +80,8 @@ async function cargarTabs() {
     : `<div class="text-gray-500">No hay datos.</div>`;
 }
 
-// Inicializa la carga cuando el documento esté listo
 cargarTabs();
 
-// Switching de tabs
 tabsArray.forEach((tab) => {
   tab.addEventListener("click", () => {
     tabsArray.forEach((t) =>
