@@ -16,7 +16,6 @@
             <input type="text" id="busqueda" name="busqueda" placeholder="¿Qué trabajo buscas?"
                 class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
                 autocomplete="off" required />
-            <!-- CAMBIO AQUÍ: flex-col para que los elementos se apilen verticalmente -->
             <div class="flex flex-col gap-4">
                 <button type="submit" id="botonBuscar"
                     class="bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition disabled:bg-blue-300 w-full"
@@ -40,26 +39,30 @@
         const botonVerResultados = document.getElementById('verResultadosBtn');
         const resultados = document.getElementById('resultados');
 
-        // Al inicio, botones deshabilitados
-        botonBuscar.disabled = true;
-        botonVerResultados.disabled = true;
+        // Estado global que refleja si hay resultados
+        let hayResultados = false;
 
-        // Habilitar o deshabilitar botón Buscar dependiendo si hay texto
+        // Actualizar estado del botón buscar al teclear
         inputBusqueda.addEventListener('input', () => {
             botonBuscar.disabled = inputBusqueda.value.trim() === '';
         });
 
-        let hayResultados = false; // Para saber si hubo búsqueda exitosa
+        // Al cargar la página, restaura estado del botón "Ver resultados"
+        window.addEventListener('DOMContentLoaded', () => {
+            const tieneResultados = localStorage.getItem('busquedaExitosa') === 'true';
+            botonVerResultados.disabled = !tieneResultados;
+            hayResultados = tieneResultados;
+        });
 
         document.getElementById('buscadorForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const query = inputBusqueda.value.trim();
 
-            // Ocultar resultados y deshabilitar botón Ver resultados al iniciar una nueva búsqueda
             resultados.style.display = 'none';
             resultados.innerHTML = '';
             botonVerResultados.disabled = true;
             hayResultados = false;
+            localStorage.setItem('busquedaExitosa', 'false'); // Resetear estado previamente
 
             if (!query) {
                 resultados.style.display = 'block';
@@ -67,18 +70,18 @@
                 return;
             }
 
-            botonBuscar.disabled = true; // Deshabilitar el botón de buscar mientras se realiza la búsqueda
+            botonBuscar.disabled = true;
 
-            resultados.style.display = 'block'; // Mostrar el contenedor de resultados para el mensaje de carga
+            resultados.style.display = 'block';
             resultados.innerHTML = `
-                <div class="flex items-center justify-center text-gray-500">
-                    <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Buscando "<span class="italic">${query}</span>"...
-                </div>
-            `;
+          <div class="flex items-center justify-center text-gray-500">
+              <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Buscando "<span class="italic">${query}</span>"...
+          </div>
+      `;
 
             try {
                 const response = await fetch('http://localhost:3000/buscar', {
@@ -91,35 +94,36 @@
 
                 const data = await response.json();
 
-                if (!data || !data.trabajos || data.trabajos.length === 0) {
+                const trabajos = Array.isArray(data) ? data : data.trabajos;
+
+                if (!trabajos || trabajos.length === 0) {
                     resultados.innerHTML = '<p class="text-red-500">No se encontraron resultados.</p>';
-                    // Si no hay resultados, el botón "Ver resultados" debe permanecer deshabilitado
                     botonVerResultados.disabled = true;
                     hayResultados = false;
+                    resultados.style.display = 'block';
+                    localStorage.setItem('busquedaExitosa', 'false');
                     return;
                 }
 
-                // Si hay resultados, ocultamos el mensaje de carga y habilitamos el botón "Ver resultados"
-                resultados.style.display = 'none'; // Ocultar el div de resultados si la búsqueda fue exitosa
+                resultados.style.display = 'none';
                 botonVerResultados.disabled = false;
                 hayResultados = true;
+                localStorage.setItem('busquedaExitosa', 'true'); // Guardar estado para persistencia
 
             } catch (error) {
                 console.error('Error:', error);
                 resultados.innerHTML = '<p class="text-red-500">Error al buscar trabajos. Intenta de nuevo.</p>';
-                // En caso de error, el botón "Ver resultados" debe permanecer deshabilitado
                 botonVerResultados.disabled = true;
                 hayResultados = false;
+                resultados.style.display = 'block';
+                localStorage.setItem('busquedaExitosa', 'false');
             } finally {
-                // Reevaluar el estado del botón "Buscar" al finalizar la operación
                 botonBuscar.disabled = inputBusqueda.value.trim() === '';
             }
         });
 
-        // Evento para el botón "Ver resultados"
         botonVerResultados.addEventListener('click', () => {
-            if (hayResultados) { // Asegurarse de que solo se redirija si hay resultados disponibles
-                // Redirigir a index.html
+            if (hayResultados) {
                 window.location.href = 'index.html';
             }
         });
