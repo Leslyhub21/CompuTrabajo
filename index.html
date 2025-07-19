@@ -6,20 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tabs</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Leaflet CSS para mostrar el mapa -->
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
-      integrity="sha256-sA+e2k84bQjC5M2iPv6hjXu1wlFd4X9H6U8GLzUXaow="
-      crossorigin=""
-    />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
     <style>
-      #map {
-        height: 300px;
-        width: 100%;
-        margin-top: 1rem;
-        border-radius: 0.5rem;
-      }
+        #map {
+            height: 500px;
+            width: 100%;
+            margin-top: 1rem;
+            border-radius: 0.5rem;
+        }
+
+        #map-empresas {
+            height: 400px;
+            width: 100%;
+            margin-top: 1rem;
+            border-radius: 0.5rem;
+        }
     </style>
 </head>
 
@@ -56,7 +57,7 @@
                 </li>
                 <li
                     class="select-tab flex-1 text-center cursor-pointer px-4 py-3 font-semibold transition hover:bg-blue-50">
-                    Tab 5
+                    Empresas Cercanas
                 </li>
             </ul>
         </nav>
@@ -73,20 +74,17 @@
         </section>
         <section class="select-content bg-white rounded-xl shadow p-6 border border-gray-200 hidden" id="tab4-content">
             <h2 class="text-lg font-semibold mb-2">Ubicación Actual</h2>
-            <p id="ubicacion" class="mb-4 text-gray-700">Solicitando ubicación...</p>
             <div id="map"></div>
         </section>
-        <section class="select-content bg-white rounded-xl shadow p-6 border border-gray-200 hidden">
-            Tab 5 Content
+        <section class="select-content bg-white rounded-xl shadow p-6 border border-gray-200 hidden" id="tab5-content">
+            <h2 class="text-lg font-semibold mb-2">Ubicación propia y empresas cercanas</h2>
+            <div id="map-empresas"></div>
+            <p id="mensaje-empresas" class="mt-4 text-gray-700"></p>
         </section>
     </div>
 
     <!-- Leaflet JS para el mapa -->
-    <script
-      src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
-      integrity="sha256-pjDXYMYd0YjiMmqykePZjAz4l65ZT8DQefvBqaP6LXE="
-      crossorigin=""
-    ></script>
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 
     <script src="./src/js/tabs.js"></script>
     <script>
@@ -101,13 +99,16 @@
             if (mapa) {
                 mapa.remove();
             }
-            mapa = L.map("map").setView([lat, lon], 13);
-            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                attribution: "&copy; OpenStreetMap contributors",
+
+            mapa = L.map('map').setView([lat, lon], 13);
+
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
             }).addTo(mapa);
+
             L.marker([lat, lon])
                 .addTo(mapa)
-                .bindPopup("Tu ubicación actual")
+                .bindPopup('Estás aquí')
                 .openPopup();
         }
 
@@ -116,15 +117,13 @@
                 mapa.remove();
                 mapa = null;
             }
-            document.getElementById("map").innerHTML = "";
+            document.getElementById('map').innerHTML = '';
         }
 
         function pedirUbicacion() {
-            const ubicacionTexto = document.getElementById("ubicacion");
-            ubicacionTexto.textContent = "Solicitando ubicación...";
-
             if (!navigator.geolocation) {
-                ubicacionTexto.textContent = "La geolocalización no está soportada por tu navegador.";
+                alert('Geolocalización no soportada por tu navegador.');
+                limpiarMapa();
                 return;
             }
 
@@ -132,35 +131,135 @@
                 (pos) => {
                     const lat = pos.coords.latitude;
                     const lon = pos.coords.longitude;
-                    ubicacionTexto.textContent = `Latitud: ${lat.toFixed(5)}, Longitud: ${lon.toFixed(5)}`;
                     mostrarMapa(lat, lon);
                 },
                 (err) => {
-                    switch (err.code) {
-                        case err.PERMISSION_DENIED:
-                            ubicacionTexto.textContent = "Permiso denegado.";
-                            break;
-                        case err.POSITION_UNAVAILABLE:
-                            ubicacionTexto.textContent = "Ubicación no disponible.";
-                            break;
-                        case err.TIMEOUT:
-                            ubicacionTexto.textContent = "Tiempo de espera agotado.";
-                            break;
-                        default:
-                            ubicacionTexto.textContent = "Error desconocido.";
-                    }
+                    alert(`Error obteniendo ubicación: ${err.message}`);
                     limpiarMapa();
                 }
             );
         }
 
-        // Manejo de tabs - solo se añade la llamada a pedirUbicacion en el tab 4
+        // Datos de ejemplo - reemplaza con tu JSON real o fetch
+        const trabajos = [
+            {
+                "titulo": "Barrendero con o sin experiencia - Zona Central de abastos / Iztapalapa",
+                "empresa": "No disponible",
+                "ubicacion": "Importante empresa del sector - Iztapalapa, Ciudad de México DF",
+                "modalidad": "Tiempo Completo",
+                "salario": "A convenir",
+                "fechaPublicacion": "Hace 1 hora (actualizada)",
+                "descripcion": "Buscamos un barrendero..."
+            }
+            // Puedes agregar más objetos aquí
+        ];
+
+        let mapaEmpresas = null;
+
+        // Cache simple para geocodificación
+        const cacheGeocoding = {};
+
+        async function geocodificar(direccion) {
+            if (cacheGeocoding[direccion]) return cacheGeocoding[direccion];
+
+            const url = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(direccion);
+            try {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Error en la petición de geocodificación');
+                const data = await res.json();
+                if (!data.length) return null;
+                const coords = {
+                    lat: parseFloat(data[0].lat),
+                    lon: parseFloat(data[0].lon)
+                };
+                cacheGeocoding[direccion] = coords;
+                return coords;
+            } catch (error) {
+                console.error('Geocoding error:', error);
+                return null;
+            }
+        }
+
+        async function mostrarMapaEmpresas() {
+            const divMensaje = document.getElementById('mensaje-empresas');
+            divMensaje.textContent = 'Obteniendo ubicación...';
+
+            if (!navigator.geolocation) {
+                divMensaje.textContent = "Geolocalización no soportada por tu navegador.";
+                console.error("Geolocalización no soportada");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(async pos => {
+                const latUsuario = pos.coords.latitude;
+                const lonUsuario = pos.coords.longitude;
+                console.log("Ubicación usuario:", latUsuario, lonUsuario);
+
+                divMensaje.textContent = 'Cargando mapa y empresas cercanas...';
+
+                if (mapaEmpresas) {
+                    mapaEmpresas.remove();
+                    mapaEmpresas = null;
+                }
+
+                mapaEmpresas = L.map('map-empresas').setView([latUsuario, lonUsuario], 12);
+
+                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(mapaEmpresas);
+
+                L.marker([latUsuario, lonUsuario])
+                    .addTo(mapaEmpresas)
+                    .bindPopup('Tu ubicación actual')
+                    .openPopup();
+
+                let empresasContadas = 0;
+
+                for (const trabajo of trabajos) {
+                    if (!trabajo.ubicacion) {
+                        console.warn("Trabajo sin ubicación:", trabajo);
+                        continue;
+                    }
+
+                    // Limpiar dirección para mejorar geocodificación
+                    let direccionParaBuscar = trabajo.ubicacion;
+                    if (direccionParaBuscar.includes(' - ')) {
+                        direccionParaBuscar = direccionParaBuscar.split(' - ').pop().trim();
+                    }
+
+                    // Añadir "México" para mejorar contexto en la consulta
+                    if (!direccionParaBuscar.toLowerCase().includes('méxico')) {
+                        direccionParaBuscar += ', México';
+                    }
+
+                    console.log("Geocodificando dirección:", direccionParaBuscar);
+
+                    const coords = await geocodificar(direccionParaBuscar);
+                    if (coords) {
+                        console.log("Coordenadas obtenidas:", coords);
+                        L.marker([coords.lat, coords.lon])
+                            .addTo(mapaEmpresas)
+                            .bindPopup(`<strong>${trabajo.titulo}</strong><br><em>${trabajo.empresa}</em><br>${direccionParaBuscar}`);
+                        empresasContadas++;
+                    } else {
+                        console.warn("No se obtuvieron coords para:", direccionParaBuscar);
+                    }
+                }
+
+                console.log(`Total empresas mostradas: ${empresasContadas}`);
+                divMensaje.textContent = `Mostrando ${empresasContadas} empresa(s) cercana(s).`;
+
+            }, err => {
+                console.error('Error obteniendo ubicación del usuario:', err);
+                divMensaje.textContent = "No se pudo obtener la ubicación.";
+            });
+        }
+
         const tabs = document.querySelectorAll('.select-tab');
         const contents = document.querySelectorAll('.select-content');
 
         tabs.forEach((tab, index) => {
             tab.addEventListener('click', () => {
-                // Manejar estilos activados/desactivados
                 tabs.forEach(t => {
                     t.classList.remove('bg-blue-100', 'text-blue-700', 'shadow-inner');
                     t.classList.add('hover:bg-blue-50');
@@ -168,18 +267,18 @@
                 tab.classList.add('bg-blue-100', 'text-blue-700', 'shadow-inner');
                 tab.classList.remove('hover:bg-blue-50');
 
-                // Mostrar solo el contenido correspondiente
                 contents.forEach(c => c.classList.add('hidden'));
                 contents[index].classList.remove('hidden');
 
-                // Al activar Tab 4 (index 3), pedir ubicación
                 if (index === 3) {
                     pedirUbicacion();
+                }
+                if (index === 4) {
+                    mostrarMapaEmpresas();
                 }
             });
         });
 
-        // Seleccionar primer tab al cargar página
         tabs[0].click();
     </script>
 </body>
