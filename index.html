@@ -6,14 +6,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tabs</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet CSS para mostrar el mapa -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+      integrity="sha256-sA+e2k84bQjC5M2iPv6hjXu1wlFd4X9H6U8GLzUXaow="
+      crossorigin=""
+    />
+    <style>
+      #map {
+        height: 300px;
+        width: 100%;
+        margin-top: 1rem;
+        border-radius: 0.5rem;
+      }
+    </style>
 </head>
 
 <body class="bg-gray-100 min-h-screen flex items-center justify-center">
     <div class="max-w-2xl w-full mx-auto px-4">
         <!-- Botón Volver al Buscador -->
         <div class="mb-4">
-            <br>
-            <br>
+            <br />
+            <br />
             <button id="volverBuscadorBtn"
                 class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded transition">
                 ← Volver al buscador
@@ -37,7 +52,7 @@
                 </li>
                 <li
                     class="select-tab flex-1 text-center cursor-pointer px-4 py-3 font-semibold transition hover:bg-blue-50">
-                    Tab 4
+                    Mapa
                 </li>
                 <li
                     class="select-tab flex-1 text-center cursor-pointer px-4 py-3 font-semibold transition hover:bg-blue-50">
@@ -56,20 +71,116 @@
         <section class="select-content bg-white rounded-xl shadow p-6 border border-gray-200 hidden">
             Loading...
         </section>
-        <section class="select-content bg-white rounded-xl shadow p-6 border border-gray-200 hidden">
-            Tab 4 Content
+        <section class="select-content bg-white rounded-xl shadow p-6 border border-gray-200 hidden" id="tab4-content">
+            <h2 class="text-lg font-semibold mb-2">Ubicación Actual</h2>
+            <p id="ubicacion" class="mb-4 text-gray-700">Solicitando ubicación...</p>
+            <div id="map"></div>
         </section>
         <section class="select-content bg-white rounded-xl shadow p-6 border border-gray-200 hidden">
             Tab 5 Content
         </section>
     </div>
 
+    <!-- Leaflet JS para el mapa -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+      integrity="sha256-pjDXYMYd0YjiMmqykePZjAz4l65ZT8DQefvBqaP6LXE="
+      crossorigin=""
+    ></script>
+
     <script src="./src/js/tabs.js"></script>
     <script>
-        // Botón para retornar al buscador (index.html)
+        // Botón para regresar al buscador
         document.getElementById('volverBuscadorBtn').addEventListener('click', () => {
             window.location.href = 'buscador.html';
         });
+
+        let mapa = null;
+
+        function mostrarMapa(lat, lon) {
+            if (mapa) {
+                mapa.remove();
+            }
+            mapa = L.map("map").setView([lat, lon], 13);
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                attribution: "&copy; OpenStreetMap contributors",
+            }).addTo(mapa);
+            L.marker([lat, lon])
+                .addTo(mapa)
+                .bindPopup("Tu ubicación actual")
+                .openPopup();
+        }
+
+        function limpiarMapa() {
+            if (mapa) {
+                mapa.remove();
+                mapa = null;
+            }
+            document.getElementById("map").innerHTML = "";
+        }
+
+        function pedirUbicacion() {
+            const ubicacionTexto = document.getElementById("ubicacion");
+            ubicacionTexto.textContent = "Solicitando ubicación...";
+
+            if (!navigator.geolocation) {
+                ubicacionTexto.textContent = "La geolocalización no está soportada por tu navegador.";
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lon = pos.coords.longitude;
+                    ubicacionTexto.textContent = `Latitud: ${lat.toFixed(5)}, Longitud: ${lon.toFixed(5)}`;
+                    mostrarMapa(lat, lon);
+                },
+                (err) => {
+                    switch (err.code) {
+                        case err.PERMISSION_DENIED:
+                            ubicacionTexto.textContent = "Permiso denegado.";
+                            break;
+                        case err.POSITION_UNAVAILABLE:
+                            ubicacionTexto.textContent = "Ubicación no disponible.";
+                            break;
+                        case err.TIMEOUT:
+                            ubicacionTexto.textContent = "Tiempo de espera agotado.";
+                            break;
+                        default:
+                            ubicacionTexto.textContent = "Error desconocido.";
+                    }
+                    limpiarMapa();
+                }
+            );
+        }
+
+        // Manejo de tabs - solo se añade la llamada a pedirUbicacion en el tab 4
+        const tabs = document.querySelectorAll('.select-tab');
+        const contents = document.querySelectorAll('.select-content');
+
+        tabs.forEach((tab, index) => {
+            tab.addEventListener('click', () => {
+                // Manejar estilos activados/desactivados
+                tabs.forEach(t => {
+                    t.classList.remove('bg-blue-100', 'text-blue-700', 'shadow-inner');
+                    t.classList.add('hover:bg-blue-50');
+                });
+                tab.classList.add('bg-blue-100', 'text-blue-700', 'shadow-inner');
+                tab.classList.remove('hover:bg-blue-50');
+
+                // Mostrar solo el contenido correspondiente
+                contents.forEach(c => c.classList.add('hidden'));
+                contents[index].classList.remove('hidden');
+
+                // Al activar Tab 4 (index 3), pedir ubicación
+                if (index === 3) {
+                    pedirUbicacion();
+                }
+            });
+        });
+
+        // Seleccionar primer tab al cargar página
+        tabs[0].click();
     </script>
 </body>
 
