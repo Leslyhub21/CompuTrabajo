@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
     <style>
         #map {
-            height: 500px;
+            height: 300px;
             width: 100%;
             margin-top: 1rem;
             border-radius: 0.5rem;
@@ -64,13 +64,13 @@
 
         <!-- Tabs Content -->
         <section class="select-content bg-white rounded-xl shadow p-6 border border-gray-200">
-            Loading...
+            Cargando trabajos...
         </section>
         <section class="select-content bg-white rounded-xl shadow p-6 border border-gray-200 hidden">
-            Loading...
+            Cargando trabajos...
         </section>
         <section class="select-content bg-white rounded-xl shadow p-6 border border-gray-200 hidden">
-            Loading...
+            Cargando trabajos...
         </section>
         <section class="select-content bg-white rounded-xl shadow p-6 border border-gray-200 hidden" id="tab4-content">
             <h2 class="text-lg font-semibold mb-2">Ubicación Actual</h2>
@@ -86,7 +86,6 @@
     <!-- Leaflet JS para el mapa -->
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 
-    <script src="./src/js/tabs.js"></script>
     <script>
         // Botón para regresar al buscador
         document.getElementById('volverBuscadorBtn').addEventListener('click', () => {
@@ -140,23 +139,53 @@
             );
         }
 
-        // Datos de ejemplo - reemplaza con tu JSON real o fetch
-        const trabajos = [
-            {
-                "titulo": "Barrendero con o sin experiencia - Zona Central de abastos / Iztapalapa",
-                "empresa": "No disponible",
-                "ubicacion": "Importante empresa del sector - Iztapalapa, Ciudad de México DF",
-                "modalidad": "Tiempo Completo",
-                "salario": "A convenir",
-                "fechaPublicacion": "Hace 1 hora (actualizada)",
-                "descripcion": "Buscamos un barrendero..."
+        // Variable global para guardar trabajos cargados
+        let trabajos = [];
+
+        // Función para cargar datos JSON desde backend
+        async function cargarTrabajos() {
+            try {
+                const res = await fetch('http://localhost:3000/output/resultadosCompuTrabajo.json');
+                if (!res.ok) throw new Error('Error cargando trabajos');
+                trabajos = await res.json();
+                mostrarTrabajos(trabajos, contents[0]);
+            } catch (e) {
+                console.error(e);
+                trabajos = [];
+                contents[0].innerHTML = '<p class="text-red-500">No se pudieron cargar los trabajos.</p>';
             }
-            // Puedes agregar más objetos aquí
-        ];
+        }
 
-        let mapaEmpresas = null;
+        // Función para extraer número del salario (ajusta según formato real)
+        function extraerSalario(texto) {
+            if (!texto) return 0;
+            const numeros = texto.match(/\d+/g);
+            if (!numeros) return 0;
+            return Math.max(...numeros.map(n => parseInt(n)));
+        }
 
-        // Cache simple para geocodificación
+        // Función para mostrar trabajos en un contenedor HTML
+        function mostrarTrabajos(trabajosFiltrados, contenedor) {
+            if (!trabajosFiltrados.length) {
+                contenedor.innerHTML = '<p>No hay trabajos para mostrar.</p>';
+                return;
+            }
+            let html = '';
+            trabajosFiltrados.forEach(t => {
+                html += `
+          <article class="mb-4 border rounded p-4 shadow-sm bg-gray-50">
+            <h3 class="font-bold text-lg">${t.titulo}</h3>
+            <p><strong>Empresa:</strong> ${t.empresa}</p>
+            <p><strong>Salario:</strong> ${t.salario}</p>
+            <p><strong>Ubicación:</strong> ${t.ubicacion}</p>
+            <p>${t.descripcion}</p>
+          </article>
+        `;
+            });
+            contenedor.innerHTML = html;
+        }
+
+        // Cache para geocodificación
         const cacheGeocoding = {};
 
         async function geocodificar(direccion) {
@@ -180,9 +209,44 @@
             }
         }
 
+        // Variable para guardar códigos postales
+        let codigosPostalesData = null;
+
+        // Cargar JSON externo de códigos postales
+        async function cargarCodigosPostales() {
+            try {
+                const response = await fetch('output/codigosPostales.json');
+                if (!response.ok) throw new Error('No se pudo cargar codigosPostales.json');
+                codigosPostalesData = await response.json();
+                console.log('Códigos postales cargados:', codigosPostalesData);
+            } catch (error) {
+                console.error('Error cargando codigosPostales.json', error);
+            }
+        }
+
+        // Obtener código postal según estado mencionado en dirección
+        function obtenerCodigoPostalPorDireccion(direccion) {
+            if (!codigosPostalesData) return null;
+
+            const direccionLower = direccion.toLowerCase();
+
+            for (const estado in codigosPostalesData) {
+                if (direccionLower.includes(estado.toLowerCase())) {
+                    const codigosEstado = codigosPostalesData[estado];
+                    const codigoObj = codigosEstado[Math.floor(Math.random() * codigosEstado.length)];
+                    return codigoObj.codigoPostal;
+                }
+            }
+            return null;
+        }
+
+        let mapaEmpresas = null;
+
         async function mostrarMapaEmpresas() {
             const divMensaje = document.getElementById('mensaje-empresas');
             divMensaje.textContent = 'Obteniendo ubicación...';
+
+            await cargarCodigosPostales();
 
             if (!navigator.geolocation) {
                 divMensaje.textContent = "Geolocalización no soportada por tu navegador.";
@@ -221,14 +285,16 @@
                         continue;
                     }
 
-                    // Limpiar dirección para mejorar geocodificación
                     let direccionParaBuscar = trabajo.ubicacion;
                     if (direccionParaBuscar.includes(' - ')) {
                         direccionParaBuscar = direccionParaBuscar.split(' - ').pop().trim();
                     }
 
-                    // Añadir "México" para mejorar contexto en la consulta
-                    if (!direccionParaBuscar.toLowerCase().includes('méxico')) {
+                    const codigoPostalAsignado = obtenerCodigoPostalPorDireccion(trabajo.ubicacion);
+
+                    if (codigoPostalAsignado) {
+                        direccionParaBuscar += `, CP ${codigoPostalAsignado}, México`;
+                    } else {
                         direccionParaBuscar += ', México';
                     }
 
@@ -258,6 +324,7 @@
         const tabs = document.querySelectorAll('.select-tab');
         const contents = document.querySelectorAll('.select-content');
 
+        // Escuchar clicks en tabs para filtrar y mostrar trabajos
         tabs.forEach((tab, index) => {
             tab.addEventListener('click', () => {
                 tabs.forEach(t => {
@@ -270,16 +337,36 @@
                 contents.forEach(c => c.classList.add('hidden'));
                 contents[index].classList.remove('hidden');
 
-                if (index === 3) {
+                if (index === 0) {
+                    // Mostrar todos
+                    mostrarTrabajos(trabajos, contents[0]);
+                } else if (index === 1) {
+                    // Top 10 mejores salarios
+                    const mejores = trabajos
+                        .filter(t => t.salario && /\d/.test(t.salario))
+                        .sort((a, b) => extraerSalario(b.salario) - extraerSalario(a.salario))
+                        .slice(0, 10);
+                    mostrarTrabajos(mejores, contents[1]);
+                } else if (index === 2) {
+                    // Top 10 peores salarios
+                    const peores = trabajos
+                        .filter(t => t.salario && /\d/.test(t.salario))
+                        .sort((a, b) => extraerSalario(a.salario) - extraerSalario(b.salario))
+                        .slice(0, 10);
+                    mostrarTrabajos(peores, contents[2]);
+                } else if (index === 3) {
                     pedirUbicacion();
-                }
-                if (index === 4) {
+                } else if (index === 4) {
                     mostrarMapaEmpresas();
                 }
             });
         });
 
-        tabs[0].click();
+        // Cargar datos cuando se carga la página
+        window.addEventListener('DOMContentLoaded', () => {
+            cargarTrabajos();
+            tabs[0].click(); // Seleccionar tab "Todos" al inicio
+        });
     </script>
 </body>
 
