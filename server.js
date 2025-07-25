@@ -3,6 +3,7 @@ const scrapearCompuTrabajo = require("./scrapearCompuTrabajo.js");
 const app = express();
 const PORT = 3000;
 const cors = require("cors");
+
 app.use(cors());
 
 app.use(express.json());
@@ -25,6 +26,35 @@ app.post("/buscar", async (req, res) => {
   } catch (err) {
     console.error("Error al hacer scraping:", err);
     res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+
+app.get("/geocode", async (req, res) => {
+  const q = req.query.q;
+  if (!q)
+    return res.status(400).json({ error: "El parámetro q es obligatorio" });
+
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+        q
+      )}`,
+      {
+        headers: {
+          "User-Agent": "TuAppNombre/1.0 (tu-email@ejemplo.com)", // cumple política de Nominatim
+        },
+      }
+    );
+    if (!response.ok) {
+      return res
+        .status(response.status)
+        .json({ error: "Error al obtener datos de geocodificación" });
+    }
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.error("Error en proxy geocoding:", error);
+    res.status(500).json({ error: "Error interno en proxy geocoding" });
   }
 });
 
