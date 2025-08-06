@@ -1,6 +1,8 @@
 const puppeteer = require("puppeteer");
 const fs = require("fs");
 const path = require("path");
+const { Parser } = require("json2csv");
+
 // Usa la ruta correcta de tu proyecto
 const exportarExcel = require("./src/js/exportarExcel"); // o "../src/js/exportarExcel"
 
@@ -117,24 +119,55 @@ module.exports = async function scrapearCompuTrabajo(elementoABuscar) {
 
   await navegador.close();
 
-  // ==== GUARDAR COMO EXCEL (usa tu función) ====
-  exportarExcel(
+  // Directorio para resultados
+  const outputDir = "./output";
+  if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
+
+  // Campos para CSV
+  const fields = [
+    "titulo",
+    "empresa",
+    "ubicacion",
+    "modalidad",
+    "salario",
+    "fechaPublicacion",
+    "descripcion",
+  ];
+
+  // Guardar CSV
+  try {
+    const json2csvParser = new Parser({ fields });
+    const csv = json2csvParser.parse(trabajos);
+    fs.writeFileSync(
+      path.join(outputDir, "resultadosCompuTrabajo.csv"),
+      csv,
+      "utf-8"
+    );
+    console.log("::: Archivo CSV creado exitosamente :::");
+  } catch (err) {
+    console.error("Error al crear archivo CSV:", err);
+  }
+
+  // Guardar JSON
+  try {
+    fs.writeFileSync(
+      path.join(outputDir, "resultadosCompuTrabajo.json"),
+      JSON.stringify(trabajos, null, 2),
+      "utf-8"
+    );
+    console.log("::: Archivo JSON creado exitosamente :::");
+  } catch (err) {
+    console.error("Error al crear archivo JSON:", err);
+  }
+
+  // Guardar Excel
+  await exportarExcel(
     trabajos,
     "resultadosCompuTrabajo.xlsx", // Nombre archivo Excel que quieras
-    "./output", // Carpeta destino
+    outputDir, // Carpeta destino
     "trabajos" // Nombre de hoja
   );
 
-  // ==== GUARDAR COMO JSON ====
-  const outputDir = "./output";
-  if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
-  fs.writeFileSync(
-    path.join(outputDir, "resultadosCompuTrabajo.json"),
-    JSON.stringify(trabajos, null, 2),
-    "utf-8"
-  );
-  console.log("::: Archivo JSON creado exitosamente :::");
-
-  // ==== IMPORTANTE: devolver trabajos para el backend
+  // Devuelvo los trabajos para que se usen en el backend o lo que necesites
   return trabajos;
 };

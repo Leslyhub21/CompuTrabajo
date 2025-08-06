@@ -7,6 +7,9 @@
     <title>Tabs con Leaflet</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+
     <style>
         #map {
             height: 300px;
@@ -33,6 +36,25 @@
                 ← Volver al buscador
             </button>
         </div>
+        <div class="mb">
+            <button id="btn-descargar-csv"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>Archivo CSV
+            </button>
+            <button id="btn-descargar-xlsx"
+                class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded transition">
+                Descargar Archivo XLSX
+            </button>
+            <br><br>
+            <button id="btn-descargar-json"
+                class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded transition">
+                Descargar Archivo JSON
+            </button>
+        </div>
 
         <!-- Tabs Navbar -->
         <nav class="flex bg-white shadow rounded-xl mb-4 overflow-hidden border border-gray-200">
@@ -57,6 +79,10 @@
                     class="select-tab flex-1 text-center cursor-pointer px-4 py-3 font-semibold transition hover:bg-blue-50">
                     Empresas Cercanas
                 </li>
+                <li
+                    class="select-tab flex-1 text-center cursor-pointer px-4 py-3 font-semibold transition hover:bg-blue-50">
+                    Acerca De
+                </li>
             </ul>
         </nav>
 
@@ -73,13 +99,175 @@
         <section class="select-content bg-white rounded-xl shadow p-6 border border-gray-200 hidden" id="tab4-content">
             <h2 class="text-lg font-semibold mb-2">Ubicación Actual</h2>
             <div id="map"></div>
+
         </section>
         <section class="select-content bg-white rounded-xl shadow p-6 border border-gray-200 hidden" id="tab5-content">
             <h2 class="text-lg font-semibold mb-2">Ubicación propia y empresas cercanas</h2>
             <div id="map-empresas"></div>
             <p id="mensaje-empresas" class="mt-4 text-gray-700"></p>
         </section>
+        <section class="select-content bg-white rounded-xl shadow p-6 border border-gray-200 hidden" id="tab6-content">
+            <h2 class="text-2xl font-semibold mb-6 text-center">Acerca De</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Card 1 -->
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div class="relative h-40">
+                        <img src="https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=800&q=80"
+                            alt="Background" class="w-full h-full object-cover" />
+                        <img src="https://i.pinimg.com/736x/e7/2a/db/e72adb2d68a821ff0e04a3a4e5ad82c8.jpg"
+                            alt="Imagen de perfil"
+                            class="w-24 h-24 rounded-full border-4 border-white absolute bottom-0 left-4 transform translate-y-1/2 object-cover" />
+                    </div>
+                    <div class="pt-12 px-6 pb-6 text-center">
+                        <h3 class="text-xl font-bold mb-1">Luis Ruben Carlos Rodriguez</h3>
+                        <p class="text-gray-600 mb-4">TSU En Tecnologia de la Informacion Area Desarrollo de Software
+                        </p>
+                        <a class="btn btn-primary"
+                            href="mailto:Ruberrodriguezcarlos@gmail.com?subject=Hola%20gracias%20por%20contactarme">Enviar
+                            correo</a>
+                        <div class="flex justify-center mt-4 space-x-4 text-blue-600">
+                            <a href="https://github.com/Lu15R" aria-label="GitHub" class="hover:text-gray-700"
+                                target="_blank" rel="noopener noreferrer">
+                                <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path fill-rule="evenodd" clip-rule="evenodd"
+                                        d="M12 0.296875C5.37 0.296875 0 5.66688 0 12.2969C0 17.6209 3.438 22.0689 8.205 23.6829C8.805 23.7789 9.025 23.4189 9.025 23.1069C9.025 22.8309 9.015 22.1509 9.009 21.1829C5.672 21.8229 4.968 19.4489 4.968 19.4489C4.422 18.0829 3.633 17.7229 3.633 17.7229C2.546 16.9829 3.717 16.9979 3.717 16.9979C4.922 17.0879 5.555 18.2529 5.555 18.2529C6.633 20.1059 8.432 19.5999 9.11 19.2969C9.211 18.5239 9.523 17.9979 9.87 17.6929C7.195 17.3879 4.39 16.3409 4.39 11.5959C4.39 10.2749 4.845 9.19988 5.615 8.35988C5.495 8.05288 5.09 6.80888 5.73 5.14988C5.73 5.14988 6.725 4.82188 8.995 6.39688C9.945 6.12388 10.955 5.98788 11.965 5.98288C12.975 5.98788 13.985 6.12388 14.935 6.39688C17.205 4.82188 18.195 5.14988 18.195 5.14988C18.845 6.80888 18.44 8.05288 18.325 8.35988C19.105 9.19988 19.55 10.2749 19.55 11.5959C19.55 16.3539 16.735 17.3849 14.055 17.6829C14.49 18.0789 14.885 18.8159 14.885 19.9599C14.885 21.5489 14.873 22.7729 14.873 23.1069C14.873 23.4189 15.085 23.7829 15.69 23.6839C20.458 22.0689 24 17.6179 24 12.2969C24 5.66688 18.63 0.296875 12 0.296875Z" />
+                                </svg>
+                            </a>
+
+                            <a href="https://mx.linkedin.com/in/luis-rub%C3%A9n-44b224377" aria-label="LinkedIn"
+                                class="hover:text-blue-700">
+                                <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                                    <path
+                                        d="M4.98 3.5A2.5 2.5 0 002.5 6v12a2.5 2.5 0 002.48 2.5h14.04A2.5 2.5 0 0021.5 18V6a2.5 2.5 0 00-2.48-2.5H4.98zM8.34 17.56H5.8v-7.7H8.34v7.7zM7.07 8.87a1.43 1.43 0 110-2.86 1.43 1.43 0 010 2.86zm7.15 8.69h-2.53v-3.73c0-.9-.32-1.52-1.12-1.52-.61 0-.98.41-1.14.81-.06.14-.07.33-.07.52v3.92H7.8s.03-6.36 0-7.03h2.53v1a2.5 2.5 0 012.32-1.27c1.69 0 2.96 1.1 2.96 3.44v3.86z" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div class="relative h-40">
+                        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80"
+                            alt="Background" class="w-full h-full object-cover" />
+                        <img src="https://i.pinimg.com/originals/ec/e4/3b/ece43bb4d69e56a6cd248b309b61e104.jpg"
+                            alt="Imagen de perfil"
+                            class="w-24 h-24 rounded-full border-4 border-white absolute bottom-0 left-4 transform translate-y-1/2 object-cover" />
+                    </div>
+                    <div class="pt-12 px-6 pb-6 text-center">
+                        <h3 class="text-xl font-bold mb-1">Gerardo Aristeo Morales Alejo</h3>
+                        <p class="text-gray-600 mb-4">TSU En Tecnologia de la Informacion Area Desarrollo de Software
+                            Multiplataforma</p>
+                        <a class="btn btn-primary"
+                            href="mailto:lalomorales0304@gmail.com?subject=Hola%20gracias%20por%20contactarme">Enviar
+                            correo</a>
+                        <div class="flex justify-center mt-4 space-x-4 text-blue-600">
+                            <a href="https://github.com/morales80" aria-label="GitHub" class="hover:text-gray-700"
+                                target="_blank" rel="noopener noreferrer">
+                                <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path fill-rule="evenodd" clip-rule="evenodd"
+                                        d="M12 0.296875C5.37 0.296875 0 5.66688 0 12.2969C0 17.6209 3.438 22.0689 8.205 23.6829C8.805 23.7789 9.025 23.4189 9.025 23.1069C9.025 22.8309 9.015 22.1509 9.009 21.1829C5.672 21.8229 4.968 19.4489 4.968 19.4489C4.422 18.0829 3.633 17.7229 3.633 17.7229C2.546 16.9829 3.717 16.9979 3.717 16.9979C4.922 17.0879 5.555 18.2529 5.555 18.2529C6.633 20.1059 8.432 19.5999 9.11 19.2969C9.211 18.5239 9.523 17.9979 9.87 17.6929C7.195 17.3879 4.39 16.3409 4.39 11.5959C4.39 10.2749 4.845 9.19988 5.615 8.35988C5.495 8.05288 5.09 6.80888 5.73 5.14988C5.73 5.14988 6.725 4.82188 8.995 6.39688C9.945 6.12388 10.955 5.98788 11.965 5.98288C12.975 5.98788 13.985 6.12388 14.935 6.39688C17.205 4.82188 18.195 5.14988 18.195 5.14988C18.845 6.80888 18.44 8.05288 18.325 8.35988C19.105 9.19988 19.55 10.2749 19.55 11.5959C19.55 16.3539 16.735 17.3849 14.055 17.6829C14.49 18.0789 14.885 18.8159 14.885 19.9599C14.885 21.5489 14.873 22.7729 14.873 23.1069C14.873 23.4189 15.085 23.7829 15.69 23.6839C20.458 22.0689 24 17.6179 24 12.2969C24 5.66688 18.63 0.296875 12 0.296875Z" />
+                                </svg>
+                            </a>
+
+                            <a href="https://www.linkedin.com/in/gerardo-aristeo-morales-alejo-47a229377/"
+                                aria-label="LinkedIn" class="hover:text-blue-700">
+                                <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                                    <path
+                                        d="M4.98 3.5A2.5 2.5 0 002.5 6v12a2.5 2.5 0 002.48 2.5h14.04A2.5 2.5 0 0021.5 18V6a2.5 2.5 0 00-2.48-2.5H4.98zM8.34 17.56H5.8v-7.7H8.34v7.7zM7.07 8.87a1.43 1.43 0 110-2.86 1.43 1.43 0 010 2.86zm7.15 8.69h-2.53v-3.73c0-.9-.32-1.52-1.12-1.52-.61 0-.98.41-1.14.81-.06.14-.07.33-.07.52v3.92H7.8s.03-6.36 0-7.03h2.53v1a2.5 2.5 0 012.32-1.27c1.69 0 2.96 1.1 2.96 3.44v3.86z" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div class="relative h-40">
+                        <img src="https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=800&q=80"
+                            alt="Background" class="w-full h-full object-cover" />
+                        <img src="https://image.freepik.com/vector-gratis/dibujos-animados-perfil-mujer_18591-58480.jpg"
+                            alt="Imagen de perfil"
+                            class="w-24 h-24 rounded-full border-4 border-white absolute bottom-0 left-4 transform translate-y-1/2 object-cover" />
+                    </div>
+                    <div class="pt-12 px-6 pb-6 text-center">
+                        <h3 class="text-xl font-bold mb-1">Lesly Guadalupe Morales Cuellar</h3>
+                        <p class="text-gray-600 mb-4">TSU En Tecnologia de la Informacion Area Desarrollo de Software
+                            Multiplataforma</p>
+                        <a class="btn btn-primary"
+                            href="mailto:moraleslesly901@gmail.com?subject=Hola%20gracias%20por%20contactarme">Enviar
+                            correo</a>
+                        <div class="flex justify-center mt-4 space-x-4 text-blue-600">
+                            <a href="https://github.com/Leslyhub21" aria-label="GitHub" class="hover:text-gray-700"
+                                target="_blank" rel="noopener noreferrer">
+                                <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path fill-rule="evenodd" clip-rule="evenodd"
+                                        d="M12 0.296875C5.37 0.296875 0 5.66688 0 12.2969C0 17.6209 3.438 22.0689 8.205 23.6829C8.805 23.7789 9.025 23.4189 9.025 23.1069C9.025 22.8309 9.015 22.1509 9.009 21.1829C5.672 21.8229 4.968 19.4489 4.968 19.4489C4.422 18.0829 3.633 17.7229 3.633 17.7229C2.546 16.9829 3.717 16.9979 3.717 16.9979C4.922 17.0879 5.555 18.2529 5.555 18.2529C6.633 20.1059 8.432 19.5999 9.11 19.2969C9.211 18.5239 9.523 17.9979 9.87 17.6929C7.195 17.3879 4.39 16.3409 4.39 11.5959C4.39 10.2749 4.845 9.19988 5.615 8.35988C5.495 8.05288 5.09 6.80888 5.73 5.14988C5.73 5.14988 6.725 4.82188 8.995 6.39688C9.945 6.12388 10.955 5.98788 11.965 5.98288C12.975 5.98788 13.985 6.12388 14.935 6.39688C17.205 4.82188 18.195 5.14988 18.195 5.14988C18.845 6.80888 18.44 8.05288 18.325 8.35988C19.105 9.19988 19.55 10.2749 19.55 11.5959C19.55 16.3539 16.735 17.3849 14.055 17.6829C14.49 18.0789 14.885 18.8159 14.885 19.9599C14.885 21.5489 14.873 22.7729 14.873 23.1069C14.873 23.4189 15.085 23.7829 15.69 23.6839C20.458 22.0689 24 17.6179 24 12.2969C24 5.66688 18.63 0.296875 12 0.296875Z" />
+                                </svg>
+                            </a>
+
+
+                            <a href="https://www.linkedin.com/in/lesly-guadalupe-morales-cuellar-b1122a377/?trk=public-profile-join-page"
+                                aria-label="LinkedIn" class="hover:text-blue-700">
+                                <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                                    <path
+                                        d="M4.98 3.5A2.5 2.5 0 002.5 6v12a2.5 2.5 0 002.48 2.5h14.04A2.5 2.5 0 0021.5 18V6a2.5 2.5 0 00-2.48-2.5H4.98zM8.34 17.56H5.8v-7.7H8.34v7.7zM7.07 8.87a1.43 1.43 0 110-2.86 1.43 1.43 0 010 2.86zm7.15 8.69h-2.53v-3.73c0-.9-.32-1.52-1.12-1.52-.61 0-.98.41-1.14.81-.06.14-.07.33-.07.52v3.92H7.8s.03-6.36 0-7.03h2.53v1a2.5 2.5 0 012.32-1.27c1.69 0 2.96 1.1 2.96 3.44v3.86z" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div class="relative h-40">
+                        <img src="https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=800&q=80"
+                            alt="Background" class="w-full h-full object-cover" />
+                        <img src="https://i.pinimg.com/736x/e8/7a/b0/e87ab0a15b2b65662020e614f7e05ef1.jpg"
+                            alt="Imagen de perfil"
+                            class="w-24 h-24 rounded-full border-4 border-white absolute bottom-0 left-4 transform translate-y-1/2 object-cover" />
+                    </div>
+                    <div class="pt-12 px-6 pb-6 text-center">
+                        <h3 class="text-xl font-bold mb-1">Kevin Jesus Badillo Diaz</h3>
+                        <p class="text-gray-600 mb-4">TSU En Tecnologia de la Informacion Area Desarrollo de Software
+                            Multiplataforma</p>
+                        <a class="btn btn-primary"
+                            href="mailto:kevinbadillod@gmail.com?subject=Hola%20gracias%20por%20contactarme">Enviar
+                            correo</a>
+                        <div class="flex justify-center mt-4 space-x-4 text-blue-600">
+                            <a href="https://github.com/KevinJBD" aria-label="GitHub" class="hover:text-gray-700"
+                                target="_blank" rel="noopener noreferrer">
+                                <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path fill-rule="evenodd" clip-rule="evenodd"
+                                        d="M12 0.296875C5.37 0.296875 0 5.66688 0 12.2969C0 17.6209 3.438 22.0689 8.205 23.6829C8.805 23.7789 9.025 23.4189 9.025 23.1069C9.025 22.8309 9.015 22.1509 9.009 21.1829C5.672 21.8229 4.968 19.4489 4.968 19.4489C4.422 18.0829 3.633 17.7229 3.633 17.7229C2.546 16.9829 3.717 16.9979 3.717 16.9979C4.922 17.0879 5.555 18.2529 5.555 18.2529C6.633 20.1059 8.432 19.5999 9.11 19.2969C9.211 18.5239 9.523 17.9979 9.87 17.6929C7.195 17.3879 4.39 16.3409 4.39 11.5959C4.39 10.2749 4.845 9.19988 5.615 8.35988C5.495 8.05288 5.09 6.80888 5.73 5.14988C5.73 5.14988 6.725 4.82188 8.995 6.39688C9.945 6.12388 10.955 5.98788 11.965 5.98288C12.975 5.98788 13.985 6.12388 14.935 6.39688C17.205 4.82188 18.195 5.14988 18.195 5.14988C18.845 6.80888 18.44 8.05288 18.325 8.35988C19.105 9.19988 19.55 10.2749 19.55 11.5959C19.55 16.3539 16.735 17.3849 14.055 17.6829C14.49 18.0789 14.885 18.8159 14.885 19.9599C14.885 21.5489 14.873 22.7729 14.873 23.1069C14.873 23.4189 15.085 23.7829 15.69 23.6839C20.458 22.0689 24 17.6179 24 12.2969C24 5.66688 18.63 0.296875 12 0.296875Z" />
+                                </svg>
+                            </a>
+
+                            <a href="https://www.linkedin.com/in/kevin-j-badillo-63022a377/" aria-label="LinkedIn"
+                                class="hover:text-blue-700">
+                                <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                                    <path
+                                        d="M4.98 3.5A2.5 2.5 0 002.5 6v12a2.5 2.5 0 002.48 2.5h14.04A2.5 2.5 0 0021.5 18V6a2.5 2.5 0 00-2.48-2.5H4.98zM8.34 17.56H5.8v-7.7H8.34v7.7zM7.07 8.87a1.43 1.43 0 110-2.86 1.43 1.43 0 010 2.86zm7.15 8.69h-2.53v-3.73c0-.9-.32-1.52-1.12-1.52-.61 0-.98.41-1.14.81-.06.14-.07.33-.07.52v3.92H7.8s.03-6.36 0-7.03h2.53v1a2.5 2.5 0 012.32-1.27c1.69 0 2.96 1.1 2.96 3.44v3.86z" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+        <footer class="bg-gray-100 py-8">
+            <div class="container mx-auto px-4">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="mt-8 text-center text-gray-500">
+                        &copy; Datos Obtenidos Con Fines Educativos Sin Lucro
+                    </div>
+                </div>
+        </footer>
     </div>
+
 
     <!-- Leaflet JS el scrip de la libreria del mapa  -->
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
@@ -89,6 +277,41 @@
         let mapaEmpresas = null;
         let trabajos = [];
         let zonasCoordenadas = {};
+
+        //seccion para agregar la logica de mis descargas
+        // Función para descargar archivo con blob
+        async function descargarArchivoComoBlob(url, nombreArchivo) {
+            try {
+                const respuesta = await fetch(url);
+                if (!respuesta.ok) throw new Error('No se pudo descargar el archivo');
+
+                const blob = await respuesta.blob();
+                const urlBlob = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = urlBlob;
+                a.download = nombreArchivo;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(urlBlob);
+            } catch (error) {
+                alert('Error al descargar el archivo: ' + error.message);
+            }
+        }
+
+        // Asignar eventos a los botones para descargar los archivos usando la función con blob
+        document.getElementById('btn-descargar-json').addEventListener('click', () => {
+            descargarArchivoComoBlob('http://localhost:3000/output/resultadosCompuTrabajo.json', 'resultadosCompuTrabajo.json');
+        });
+
+        document.getElementById('btn-descargar-xlsx').addEventListener('click', () => {
+            descargarArchivoComoBlob('http://localhost:3000/output/resultadosCompuTrabajo.xlsx', 'resultadosCompuTrabajo.xlsx');
+        });
+
+        document.getElementById('btn-descargar-csv').addEventListener('click', () => {
+            descargarArchivoComoBlob('http://localhost:3000/output/resultadosCompuTrabajo.csv', 'resultadosCompuTrabajo.csv');
+        });
+
 
         // Cargo las coordenadas de mi archivo calles.json haciendo un fetch a mi servidor local
         async function cargarZonasCoordenadas() {
@@ -189,8 +412,8 @@
             <p><strong>Empresa:</strong> ${t.empresa}</p>
             <p><strong>Salario:</strong> ${t.salario}</p>
             <p><strong>Ubicación:</strong> ${t.ubicacion}</p>
-            <p>${t.descripcion}</p>
           </article>
+          
         `;
             });
             contenedor.innerHTML = html;
