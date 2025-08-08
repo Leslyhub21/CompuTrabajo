@@ -4,7 +4,7 @@ const path = require("path");
 const { Parser } = require("json2csv");
 
 // Usa la ruta correcta de tu proyecto
-const exportarExcel = require("./src/js/exportarExcel"); // o "../src/js/exportarExcel"
+const exportarExcel = require("../src/js/exportarExcel.js"); // o "../src/js/exportarExcel"
 
 module.exports = async function scrapearCompuTrabajo(elementoABuscar) {
   const URL = `https://mx.computrabajo.com/trabajo-de-${encodeURIComponent(
