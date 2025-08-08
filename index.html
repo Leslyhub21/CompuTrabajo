@@ -308,25 +308,26 @@
                 alert('Error al descargar el archivo: ' + error.message);
             }
         }
+        const baseURL = 'https://vercel-api-back-compu-o3wjxxj97-morales80s-projects.vercel.app';
 
         // Asignar eventos a los botones para descargar los archivos usando la función con blob
         document.getElementById('btn-descargar-json').addEventListener('click', () => {
-            descargarArchivoComoBlob('http://localhost:3000/output/resultadosCompuTrabajo.json', 'resultadosCompuTrabajo.json');
+            descargarArchivoComoBlob(`${baseURL}/output/resultadosCompuTrabajo.json`, 'resultadosCompuTrabajo.json');
         });
 
         document.getElementById('btn-descargar-xlsx').addEventListener('click', () => {
-            descargarArchivoComoBlob('http://localhost:3000/output/resultadosCompuTrabajo.xlsx', 'resultadosCompuTrabajo.xlsx');
+            descargarArchivoComoBlob(`${baseURL}/output/resultadosCompuTrabajo.xlsx`, 'resultadosCompuTrabajo.xlsx');
         });
 
         document.getElementById('btn-descargar-csv').addEventListener('click', () => {
-            descargarArchivoComoBlob('http://localhost:3000/output/resultadosCompuTrabajo.csv', 'resultadosCompuTrabajo.csv');
+            descargarArchivoComoBlob(`${baseURL}/output/resultadosCompuTrabajo.csv`, 'resultadosCompuTrabajo.csv');
         });
 
 
         // Cargo las coordenadas de mi archivo calles.json haciendo un fetch a mi servidor local
         async function cargarZonasCoordenadas() {
             try {
-                const res = await fetch('http://localhost:3000/output/calles.json');
+                const res = await fetch(`${baseURL}/output/calles.json`);
                 if (!res.ok) throw new Error('Error cargando coordenadas de zonas');
                 zonasCoordenadas = await res.json();
                 console.log('Coordenadas de zonas cargadas:', zonasCoordenadas);
@@ -386,9 +387,7 @@
         // Cargo el archivo JSON de resultados de trabajos de mi scraping
         async function cargarTrabajos() {
             try {
-                const res = await fetch(
-                    'http://localhost:3000/output/resultadosCompuTrabajo.json'
-                );
+                const res = await fetch(`${baseURL}/output/resultadosCompuTrabajo.json`);
                 if (!res.ok) throw new Error('Error cargando trabajos');
                 trabajos = await res.json();
                 mostrarTrabajos(trabajos, contents[0]);
