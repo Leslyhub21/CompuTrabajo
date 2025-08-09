@@ -1,6 +1,6 @@
 const puppeteer = require("puppeteer");
-const preguntarElemento = require("./src/js/preguntaElementoAlBuscar");
-const exportarExcel = require("./src/js/exportarExcel");
+const preguntarElemento = require("./preguntaElementoAlBuscar");
+const exportarExcel = require("./exportarExcel");
 
 (async () => {
   const elementoABuscar = await preguntarElemento();
