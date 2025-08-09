@@ -91,8 +91,15 @@
                 if (!response.ok) throw new Error('Respuesta no OK del servidor');
 
                 const data = await response.json();
+                console.log(data); // <-- Esto te dirá cómo es la respuesta real
 
-                const trabajos = Array.isArray(data) ? data : data.trabajos;
+                let trabajos = [];
+
+                if (Array.isArray(data)) {
+                    trabajos = data;
+                } else if (Array.isArray(data.trabajos)) {
+                    trabajos = data.trabajos;
+                }
 
                 if (!trabajos || trabajos.length === 0) {
                     resultados.innerHTML = '<p class="text-red-500">No se encontraron resultados.</p>';
@@ -103,7 +110,19 @@
                     return;
                 }
 
-                resultados.style.display = 'none';
+                // Mostrar resultados
+                resultados.innerHTML = trabajos.map(trabajo => `
+    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded mb-4">
+        <h2 class="text-lg font-bold text-blue-800">${trabajo.titulo}</h2>
+        <p class="text-gray-700"><span class="font-semibold">Empresa:</span> ${trabajo.empresa}</p>
+        <p class="text-gray-700"><span class="font-semibold">Ubicación:</span> ${trabajo.ubicacion}</p>
+        <p class="text-gray-700"><span class="font-semibold">Modalidad:</span> ${trabajo.modalidad}</p>
+        <p class="text-gray-700"><span class="font-semibold">Salario:</span> ${trabajo.salario}</p>
+        <p class="text-gray-700"><span class="font-semibold">Publicado:</span> ${trabajo.fechaPublicacion}</p>
+        <p class="text-gray-600 mt-2">${trabajo.descripcion}</p>
+    </div>
+`).join('');
+                resultados.style.display = 'block';
                 botonVerResultados.disabled = false;
                 hayResultados = true;
                 localStorage.setItem('busquedaExitosa', 'true');
